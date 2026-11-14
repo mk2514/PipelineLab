@@ -1,112 +1,120 @@
-const canvas = document.querySelector('#scene');
-const context = canvas.getContext('2d', { alpha: false });
+const video = document.querySelector('#scene');
 const journey = document.querySelector('#journey');
-const copies = [...document.querySelectorAll('.copy')];
+const viewport = document.querySelector('.viewport');
+const copies = [...document.querySelectorAll('.copy')].map(element => ({
+  element,
+  from: Number(element.dataset.from),
+  to: Number(element.dataset.to),
+}));
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const frames = new Map();
-const pending = new Set();
-const failures = new Set();
-const totalFrames = 1440;
 const status = document.querySelector('#load-status');
 const chapter = document.querySelector('#chapter');
+const track = document.querySelector('#track');
+const percent = document.querySelector('#percent');
 const chapters = ['Inside the CPU', '01 / Fetch', '02 / Decode', '03 / Execute', '04 / Write', 'Dependencies & stalls', 'The clock', 'The pipeline'];
-let current = 0;
 let target = 0;
-let requested = 0;
-let lastDrawn = -1;
-let raf = 0;
-let width = 0;
-let height = 0;
+let current = 0;
+let animation = 0;
+let previousTime = 0;
+let duration = 0;
+let distance = 1;
+let objectURL;
+let activeChapter = -1;
 
-function resize() {
-  const ratio = Math.min(devicePixelRatio || 1, 1.5);
-  width = canvas.width = Math.round(innerWidth * ratio);
-  height = canvas.height = Math.round(innerHeight * ratio);
-  lastDrawn = -1;
-  onScroll();
-}
-function draw(index) {
-  const frame = frames.get(index);
-  if (!frame || lastDrawn === index) return;
-  const scale = Math.max(width / frame.width, height / frame.height);
-  const w = frame.width * scale;
-  const h = frame.height * scale;
-  context.drawImage(frame, (width - w) / 2, (height - h) / 2, w, h);
-  lastDrawn = index;
-}
-async function fetchFrame(index) {
-  pending.add(index);
-  try {
-    const response = await fetch('frames/' + String(index).padStart(4, '0') + '.webp');
-    if (!response.ok) throw new Error('Frame unavailable');
-    const frame = await createImageBitmap(await response.blob());
-    frames.set(index, frame);
-    if (index === requested) {
-      draw(index);
-      status.textContent = '';
-    }
-  } catch {
-    failures.add(index);
-    if (index === requested) status.textContent = 'Scene loading — scroll to continue';
-  } finally {
-    pending.delete(index);
-    fillCache();
-  }
-}
-function fillCache() {
-  // A bounded sliding window keeps decoded image memory independent of film length.
-  for (const [index, frame] of frames) {
-    if (Math.abs(index - requested) > 54) {
-      frame.close();
-      frames.delete(index);
-    }
-  }
-  const direction = target >= current ? 1 : -1;
-  const wanted = [requested];
-  for (let offset = 1; offset <= 36; offset++) {
-    wanted.push(requested + offset * direction);
-    if (offset <= 12) wanted.push(requested - offset * direction);
-  }
-  for (const index of wanted) {
-    if (pending.size >= 6) break;
-    if (index < 0 || index >= totalFrames || frames.has(index) || pending.has(index) || failures.has(index)) continue;
-    fetchFrame(index);
-  }
-}
-function render() {
-  raf = 0;
-  current = reducedMotion.matches ? target : current + (target - current) * 0.12;
-  if (Math.abs(current - target) < 0.00015) current = target;
-  requested = Math.round(current * (totalFrames - 1));
-  if (reducedMotion.matches) requested = Math.min(1439, Math.round(requested / 180) * 180);
-  draw(requested);
-  fillCache();
-  let active = Math.max(0, copies.findLastIndex(copy => current >= Number(copy.dataset.from)));
-  copies.forEach((copy, index) => {
-    const from = Number(copy.dataset.from);
-    const to = Number(copy.dataset.to);
-    const fadeIn = index === 0 ? 1 : Math.min(1, (current - from) / 0.018);
-    const fadeOut = Math.min(1, (to - current) / 0.018);
+function paintCopy(progress) {
+  let active = 0;
+  copies.forEach(({ element, from, to }, index) => {
+    if (progress >= from) active = index;
+    const fadeIn = index === 0 ? 1 : Math.min(1, (progress - from) / 0.018);
+    const fadeOut = Math.min(1, (to - progress) / 0.018);
     const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
-    copy.classList.toggle('visible', opacity > 0);
-    copy.style.opacity = opacity;
-    copy.style.transform = 'translateY(calc(-50% + ' + ((1 - opacity) * 24) + 'px))';
-    copy.inert = opacity < 0.5;
-    copy.setAttribute('aria-hidden', opacity < 0.5 ? 'true' : 'false');
-    if (opacity > 0.5) active = index;
+    element.classList.toggle('visible', opacity > 0);
+    element.style.opacity = opacity;
+    element.style.transform = 'translateY(calc(-50% + ' + Math.round((1 - opacity) * 24) + 'px))';
+    const hidden = opacity < 0.5;
+    if (element.inert !== hidden) {
+      element.inert = hidden;
+      element.setAttribute('aria-hidden', String(hidden));
+    }
   });
-  chapter.textContent = chapters[active];
-  document.querySelector('#track').style.transform = 'scaleX(' + current + ')';
-  document.querySelector('#percent').textContent = String(Math.round(current * 100)).padStart(2, '0') + '%';
-  if (current !== target) raf = requestAnimationFrame(render);
+  if (active !== activeChapter) {
+    activeChapter = active;
+    chapter.textContent = chapters[active];
+    viewport.dataset.side = copies[active].element.classList.contains('right') ? 'right' : active >= 6 ? 'center' : 'left';
+  }
+  track.style.transform = 'scaleX(' + progress + ')';
+  percent.textContent = String(Math.round(progress * 100)).padStart(2, '0') + '%';
+}
+
+function schedule() {
+  if (!animation) animation = requestAnimationFrame(tick);
+}
+function tick(time) {
+  animation = 0;
+  const elapsed = previousTime ? Math.min(time - previousTime, 50) : 16;
+  previousTime = time;
+  const difference = target - current;
+  current = reducedMotion.matches ? target : current + difference * (1 - Math.exp(-elapsed / 100));
+  if (Math.abs(target - current) < 0.0002) current = target;
+  let frameProgress = current;
+  if (reducedMotion.matches) frameProgress = Math.round(current * 8) / 8;
+  const nextTime = frameProgress * duration;
+  // Finish the current decode before seeking again, coalescing rapid scroll input.
+  if (duration && !video.seeking && Math.abs(video.currentTime - nextTime) > 1 / 48) {
+    video.currentTime = nextTime;
+  }
+  if (current !== target) schedule();
+  else previousTime = 0;
 }
 function onScroll() {
-  const distance = journey.offsetHeight - innerHeight;
-  target = Math.max(0, Math.min(1, -journey.getBoundingClientRect().top / distance));
-  if (!raf) raf = requestAnimationFrame(render);
+  target = Math.max(0, Math.min(1, (scrollY - journey.offsetTop) / distance));
+  schedule();
+}
+function resize() {
+  distance = Math.max(1, journey.offsetHeight - innerHeight);
+  onScroll();
+}
+video.addEventListener('loadedmetadata', () => {
+  duration = Math.max(0, video.duration - 1 / 24);
+  schedule();
+});
+video.addEventListener('loadeddata', () => {
+  status.textContent = '';
+  schedule();
+});
+video.addEventListener('seeked', () => {
+  paintCopy(duration ? video.currentTime / duration : 0);
+  schedule();
+});
+video.addEventListener('error', () => {
+  status.textContent = 'Camera unavailable. Reload to retry.';
+});
+async function prepareVideo() {
+  // Buffer one compressed asset so camera travel never waits on individual frame requests.
+  try {
+    const response = await fetch('cpu-scroll.mp4');
+    if (!response.ok) throw new Error('Video unavailable');
+    const total = Number(response.headers.get('Content-Length'));
+    const reader = response.body.getReader();
+    const chunks = [];
+    let received = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.byteLength;
+      if (total) status.textContent = 'Preparing camera ' + Math.min(100, Math.round(received / total * 100)) + '%';
+    }
+    objectURL = URL.createObjectURL(new Blob(chunks, { type: 'video/mp4' }));
+    video.src = objectURL;
+  } catch {
+    // The media element can use native range loading if full-file buffering fails.
+    video.src = 'cpu-scroll.mp4';
+  }
+  video.load();
 }
 function travel(progress) {
-  scrollTo({ top: journey.offsetTop + progress * (journey.offsetHeight - innerHeight), behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+  scrollTo({ top: journey.offsetTop + progress * distance, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
 }
 document.querySelectorAll('[data-progress]').forEach(button => {
   button.addEventListener('click', () => travel(Number(button.dataset.progress)));
@@ -119,5 +127,6 @@ document.querySelector('#restart').addEventListener('click', () => { dialog.clos
 addEventListener('scroll', onScroll, { passive: true });
 addEventListener('resize', resize);
 reducedMotion.addEventListener('change', onScroll);
+paintCopy(0);
 resize();
-
+prepareVideo();

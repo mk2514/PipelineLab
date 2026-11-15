@@ -92,7 +92,7 @@ video.addEventListener('error', () => {
 async function prepareVideo() {
   // Buffer one compressed asset so camera travel never waits on individual frame requests.
   try {
-    const response = await fetch('cpu-scroll.mp4');
+    const response = await fetch('cpu-scroll.mp4?v=4');
     if (!response.ok) throw new Error('Video unavailable');
     const total = Number(response.headers.get('Content-Length'));
     const reader = response.body.getReader();
@@ -109,7 +109,7 @@ async function prepareVideo() {
     video.src = objectURL;
   } catch {
     // The media element can use native range loading if full-file buffering fails.
-    video.src = 'cpu-scroll.mp4';
+    video.src = 'cpu-scroll.mp4?v=4';
   }
   video.load();
 }
@@ -120,10 +120,7 @@ document.querySelectorAll('[data-progress]').forEach(button => {
   button.addEventListener('click', () => travel(Number(button.dataset.progress)));
 });
 document.querySelector('.explore').addEventListener('click', () => travel(0.19));
-const dialog = document.querySelector('#learn');
-document.querySelectorAll('[data-start]').forEach(button => button.addEventListener('click', () => dialog.showModal()));
-document.querySelector('.close').addEventListener('click', () => dialog.close());
-document.querySelector('#restart').addEventListener('click', () => { dialog.close(); travel(0.19); });
+document.querySelectorAll('[data-start]').forEach(button => button.addEventListener('click', () => { location.href = 'app.html#learn'; }));
 addEventListener('scroll', onScroll, { passive: true });
 addEventListener('resize', resize);
 reducedMotion.addEventListener('change', onScroll);

@@ -4,15 +4,15 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Scroll inside a CPU. A cinematic journey through instruction pipelining.">
 <title>PipelineLab — A journey inside the CPU</title>
-<link rel="preload" as="image" href="poster.webp">
-<link rel="stylesheet" href="style.css?v=3"><script defer src="motion.js?v=3"></script>
+<link rel="preload" as="image" href="poster.webp?v=4">
+<link rel="stylesheet" href="style.css?v=3"><script defer src="motion.js?v=4"></script>
 </head>
 <body>
 <header><a href="#top" class="brand" aria-label="PipelineLab home"><span class="symbol">▦</span> PipelineLab</a><button class="start" data-start>Get started <span>↗</span></button></header>
 <main id="top">
 <div id="journey">
 <div class="viewport">
-<video id="scene" muted playsinline preload="auto" poster="poster.webp" aria-label="Scroll-controlled camera journey through the CPU"></video>
+<video id="scene" muted playsinline preload="auto" poster="poster.webp?v=4" aria-label="Scroll-controlled camera journey through the CPU"></video>
 <div class="shade"></div>
 <div class="copy hero" data-from="0" data-to=".12"><p class="eyebrow">A journey inside the CPU</p><h1>Every instruction.<br><em>A little magic.</em></h1><p class="description">Enter the pipeline. Follow the flow.<br>See what happens between the clock ticks.</p><button class="explore">Scroll to enter <span>↓</span></button></div>
 <div class="copy left" data-from=".13" data-to=".265"><p class="eyebrow">01 / Fetch</p><h2>It begins<br>with a <em>fetch.</em></h2><p class="description">The program counter points to the next instruction.<br>The CPU brings it in from memory.</p><div class="signal"><span>PC</span><i>→</i><span>MEMORY</span><i>→</i><span>INSTRUCTION</span></div></div>
@@ -27,6 +27,6 @@
 </div>
 </div>
 </main>
-<dialog id="learn"><button class="close" aria-label="Close introduction">×</button><p class="eyebrow">Start with the idea</p><h2>Overlap<br><em>saves time.</em></h2><p>While one instruction executes, another can decode and a third can be fetched. Each stage works on a different instruction during the same clock cycle.</p><div class="example"><span>5 instructions · 4 stages · 2 ns per stage</span><div><p><strong>40 ns</strong>Sequential</p><p><strong>16 ns</strong>Pipelined</p><p><strong>2.5×</strong>Speedup</p></div><small>Equal stage times, no stalls, and no pipeline-register overhead. Pipelined time = (4 + 5 − 1) × 2 ns.</small></div><button class="primary" id="restart">Follow an instruction again ↗</button></dialog>
+
 <noscript><p class="no-script">Enable JavaScript to explore the camera journey. CPU pipelining overlaps Fetch, Decode, Execute, and Write across different instructions.</p></noscript>
 </body></html>

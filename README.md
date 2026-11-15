@@ -4,7 +4,15 @@ Open the published site and choose **Get started** to enter Learn. The workspace
 
 ## Run locally
 
-From this project directory, run:
+Extract the ZIP first. Install Python 3 if it is not already available. From the extracted PipelineLab directory, run:
+
+```powershell
+python start.py
+```
+
+On Windows you can also use `py start.py`; on macOS/Linux use `python3 start.py`. The launcher opens your browser automatically. Keep the terminal open while using the app; press Ctrl+C to stop. If the port is busy, run `python start.py --port 8735`.
+
+Alternatively, start a static server manually:
 
 ```powershell
 python -m http.server 8734 --bind 127.0.0.1 --directory dist
@@ -19,6 +27,10 @@ node --test tests/model.test.mjs
 ```
 
 No build step, backend, login or AI API is required. Settings, saved programs, saved calculator problems and learning progress use versioned browser local storage.
+
+All application code and video/image assets are included in `dist/`. Edit `app.css` for the glass learning workspace, `app.mjs` for application views, `content.mjs` for lessons/questions, and `engine.mjs` for CPU simulation. The landing page uses `index.html`, `style.css`, and `motion.js`. Node.js is optional and only needed to run the tests above.
+
+Google Fonts loads the display fonts when online; the site uses system fallback fonts offline. The app and bundled video work without external APIs. Browser-saved progress belongs to the browser and local URL you use and is not included in the ZIP.
 
 ## Model boundaries
 

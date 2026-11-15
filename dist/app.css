@@ -19,3 +19,26 @@ dialog{background:#12261b;color:#e3f6e8;border-color:#476653}.close{color:#e4f7e
 @media(max-width:700px){.hero-panel h2{font-size:40px}.lesson-copy>p{font-size:15px}}
 
 .hero-panel h2 em{color:#c2f7da;font-weight:400}input[type=range],input[type=checkbox],input[type=radio]{accent-color:#83cda3}
+
+/* Frosted workspace: static lighting and selective blur keep scrolling light. */
+:root{background:#091b14;--line:rgba(191,246,215,.2);--muted:#bdd2c5}
+body{min-height:100svh;isolation:isolate}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 77% 4%,#427d626b,transparent 49%),radial-gradient(ellipse at 26% 66%,#22645066,transparent 53%),linear-gradient(135deg,#091b14,#102d22 60%,#0a1e1b)}
+.sidebar{z-index:5;background:linear-gradient(160deg,#244735c9,#0b2019e8);border-right-color:#d0ffe328;box-shadow:8px 0 35px #020e092b}
+.panel{background:linear-gradient(135deg,#315c4485,#10271ee6);border:1px solid #c2f8d735;border-top-color:#e3ffed59;border-radius:20px;box-shadow:inset 0 1px 0 #e3ffed0d,0 12px 32px #020e0926}
+.hero-panel{background:linear-gradient(125deg,#608c7163,#244c398f 48%,#102b22bf);box-shadow:inset 0 1px 0 #edfff319,0 18px 50px #020e0933}
+.sidebar nav a{border:1px solid transparent;transition:background-color .16s ease,border-color .16s ease}
+.sidebar nav a:hover{background:#caefda0d}.sidebar nav a.active{background:linear-gradient(120deg,#c7f5d92b,#7fb59b15);border-color:#d5ffe540;box-shadow:inset 0 1px 0 #edfff312}
+button{background:linear-gradient(160deg,#a6d2b724,#abcbbd0b);border-color:#cef5df40;box-shadow:inset 0 1px 0 #effff70d;transition:background-color .16s ease,border-color .16s ease}
+button:hover{background-color:#a2d3b51c;border-color:#d2ffe870}.primary{background:linear-gradient(135deg,#e4ffef,#baf3d1);color:#123723;border-color:#e1ffef;box-shadow:inset 0 1px 0 #fff9,0 4px 18px #a3efc31a}.primary:hover{background:#e5fff0}
+.secondary{background:#b9e3ce0a}.stats .stat,.stage{background:linear-gradient(150deg,#adcdbd13,#0c241d70);border-color:#b8e7cb30;box-shadow:inset 0 1px 0 #edfff309}
+.options label,.formula{background:#0d271e70;border:1px solid #bae9ce24}.options label:has(input:checked){background:#a7edc41c;border-color:#bdeed26b}
+.lesson-list button.active,.tabs button.active{background:linear-gradient(135deg,#a5e3bc38,#77bd9c24);border-color:#b9f6cf85;box-shadow:inset 0 1px 0 #edfff326}
+.field input,.field select,select,textarea,input[type=number],input[type=text]{background:#081e17ad;border-color:#c0e9d332;box-shadow:inset 0 2px 5px #0002}select option{background:#143124;color:#eff8ef}
+.pill{background:#c3f5d91a;border:1px solid #d0f8df2b}.register,.memory-bank span{background:#c4ead510}.stage.waiting{background:#493b1fe8}.stage.flushed{background:#4b2725ed}
+.presentation-notes{background:linear-gradient(135deg,#463c29ed,#2b281de8)}
+dialog{background:linear-gradient(140deg,#284f3be8,#10271ef5);border-color:#d2ffe44d;box-shadow:inset 0 1px 0 #effff51a,0 24px 90px #0008}
+dialog::backdrop{background:#03110bb3;backdrop-filter:blur(4px)}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.sidebar,.hero-panel,dialog{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}}
+@media(max-width:700px){.panel{border-radius:16px}.sidebar{-webkit-backdrop-filter:none;backdrop-filter:none}.hero-panel{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}}
+@media(prefers-reduced-transparency:reduce){.sidebar,.panel,dialog{background:#142e22;-webkit-backdrop-filter:none;backdrop-filter:none}body::before{background:#0d2118}}
